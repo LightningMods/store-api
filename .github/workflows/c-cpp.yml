@@ -68,8 +68,11 @@ jobs:
     - name: build store-api
       run: |
         make
-        make install
         tar cvf store_api.tar *.a *.prx
+
+    - name: build store-api
+      run: |
+        make
 
     - name: Push tarball
       uses: actions/upload-artifact@v3
