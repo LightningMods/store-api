@@ -50,7 +50,7 @@ jobs:
     - name: Install polarssl
       working-directory: oosdk_libraries/polarssl-1.3.9
       run: make install
-        
+
     - name: Install libjbc
       working-directory: ps4-libjbc
       run: make install
@@ -68,11 +68,7 @@ jobs:
     - name: build store-api
       run: |
         make
-        tar cvf store_api.tar *.a *.prx
-
-    - name: build store-api
-      run: |
-        make
+        tar cf store_api.tar *.a *.prx
 
     - name: Push tarball
       uses: actions/upload-artifact@v3
