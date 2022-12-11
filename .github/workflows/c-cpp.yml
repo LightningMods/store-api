@@ -8,12 +8,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Checkout store-api
-      uses: actions/checkout@v3
-      with:
-        repository: LightningMods/store-api
-        path: store-api
-
     - name: Checkout oosdk_libraries
       uses: actions/checkout@v3
       with:
@@ -27,17 +21,15 @@ jobs:
         path: ps4-libjbc
 
     - name: Set env vars
-      id: slug
-      run: |
-        echo "::set-output name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)"
-        echo "pkg_file=IV0000-APOL00004_00-APOLLO0000000PS4.pkg" >> $GITHUB_ENV
-        echo "llvm_ver=12.0" >> $GITHUB_ENV
+      run: echo "llvm_ver=12.0" >> $GITHUB_ENV
+
       # temporary release until 0.53 is released
     - name: Download OpenOrbis Toolchain
       run: |
         curl -sL https://github.com/LightningMods/OpenOrbis-PS4-Toolchain/releases/download/v0.50001/OOSDK.tar.gz | tar xvz -C ./
         echo "OO_PS4_TOOLCHAIN=${GITHUB_WORKSPACE}/OpenOrbis/PS4Toolchain" >> $GITHUB_ENV
         cp oosdk_libraries/build_rules.mk OpenOrbis/PS4Toolchain/build_rules.mk
+
     - name: Cache LLVM and Clang
       id: cache-llvm
       uses: actions/cache@v3
@@ -53,17 +45,16 @@ jobs:
 
     - name: Install zlib
       working-directory: oosdk_libraries/zlib_partial
-      run: |
-        make install
+      run: make install
+
     - name: Install polarssl
       working-directory: oosdk_libraries/polarssl-1.3.9
-      run: |
-        make install
+      run: make install
         
     - name: Install libjbc
       working-directory: ps4-libjbc
-      run: |
-        make install
+      run: make install
+
     - name: Install libcurl library
       working-directory: oosdk_libraries/curl-7.64.1
       run: |
@@ -73,7 +64,7 @@ jobs:
         make libcurl
         cp lib/libcurl.a "${OO_PS4_TOOLCHAIN}/lib"
         cp -R ../include/curl "${OO_PS4_TOOLCHAIN}/include/"
-        
+
     - name: build store-api
       run: |
         make
