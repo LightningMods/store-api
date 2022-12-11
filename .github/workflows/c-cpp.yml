@@ -67,6 +67,7 @@ jobs:
 
     - name: build store-api
       run: |
+        make
         make install
         tar cvf store_api.tar *.a *.prx
 
