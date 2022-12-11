@@ -65,7 +65,7 @@ $(INTDIR)/%.o: $(PROJDIR)/%.cpp
 .PHONY: clean
 .DEFAULT_GOAL := all
 
-all: $(TARGET) $(TARGETSTATIC)
+all: $(TARGET) $(TARGETSTATIC) install
 
 clean:
 	rm -f $(TARGET)  $(INTDIR)/$(PROJDIR).elf $(INTDIR)/$(PROJDIR)/oelf $(OBJS)
