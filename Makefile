@@ -65,11 +65,11 @@ $(INTDIR)/%.o: $(PROJDIR)/%.cpp
 .PHONY: clean
 .DEFAULT_GOAL := all
 
-all: $(TARGET) $(TARGETSTATIC) install
+all: $(TARGET) $(TARGETSTATIC)
 
 clean:
 	rm -f $(TARGET)  $(INTDIR)/$(PROJDIR).elf $(INTDIR)/$(PROJDIR)/oelf $(OBJS)
-install:
+install: 
 	@echo Installing...
 	@cp include/store_api.h $(OO_PS4_TOOLCHAIN)/include/store_api.h
 	@yes | cp -f $(TARGETSTATIC) $(OO_PS4_TOOLCHAIN)/lib/$(TARGETSTATIC) 2>/dev/null && echo Installed!|| echo Failed to install, is it built?
