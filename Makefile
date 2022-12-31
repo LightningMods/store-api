@@ -2,12 +2,9 @@
 TARGET := store_api.prx
 
 # Libraries linked into the ELF.
-LIBS        :=  -lc++ -ljbc -lc -lkernel  -lcurl  -lpolarssl  -lSceUserService -lSceLncUtil -lSceSysmodule \
+LIBS        :=  -lc++ -ljbc -lc -lz -lkernel  -lcurl  -lpolarssl  -lSceUserService -lSceLncUtil -lSceSysmodule \
                 -lSceNet -lSceSystemService -lSceCommonDialog -lSceMsgDialog -lSceImeDialog -lSceIme -lSceBgft -lSceAppInstUtil -lSceLibcInternal
 
-
-# Additional compile flags.
-EXTRAFLAGS  := -Wall -Wno-int-to-pointer-cast -Werror -Wno-for-loop-analysis -fcolor-diagnostics -Iinclude -Wall -D__ORBIS__ -D__PS4__
 
 # Additional compile flags.
 EXTRAFLAGS  := -Wall -Wno-int-to-pointer-cast -Werror -Wno-for-loop-analysis -fcolor-diagnostics -Iinclude -Wall -D__ORBIS__ -D__PS4__
