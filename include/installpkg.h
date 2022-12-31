@@ -168,6 +168,9 @@ TYPE_FIELD(uint8_t digest[PKG_DIGEST_SIZE], 0xFE0);
 TYPE_END();
 TYPE_CHECK_SIZE(struct pkg_header, SIZEOF_PKG_HEADER);
 
+
+bool app_inst_util_is_exists(const char* title_id, bool* exists);
+
 #if defined(__cplusplus)
 extern "C" {
 #endif

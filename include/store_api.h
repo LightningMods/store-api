@@ -1,10 +1,10 @@
 #include <stdint.h>
 
-typedef enum{
+enum update_ret{
     UPDATE_FOUND,
     UPDATE_ERROR,
     NO_UPDATE,
-} update_ret;
+};
 #ifdef __cplusplus 
 extern "C" {
 #endif

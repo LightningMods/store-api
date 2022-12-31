@@ -3,6 +3,7 @@
 #include <md5.h>
 #include <errno.h>
 #include <sys/time.h>
+#include <orbis/SystemService.h>
 #include <orbis/Sysmodule.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -12,7 +13,6 @@
 #include <iosfwd>
 #include <unistd.h>
 #include <dialog.h>
-#include <sstream>
 #include "installpkg.h"
 #include <sys/param.h>
 #include <sys/mount.h>
@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <orbis/SystemService.h>
 #include <orbis/libkernel.h>
 #include "fmt/format.h"
 #include "fmt/printf.h"
@@ -31,17 +32,6 @@
 uint32_t sdkVersion = -1;
 bool sceAppInst_done = false;
 
-extern "C" {
-int sceSystemServiceKillApp(uint32_t appid, int opt,int method, int reason);
-int sceKernelOpenEventFlag(void* event, const char* name);
-int sceKernelCloseEventFlag(void* event);
-int sceUserServiceGetForegroundUser(uint32_t *userid);
-int32_t sceSystemServiceHideSplashScreen();
-int32_t sceSystemServiceParamGetInt(int32_t paramId, int32_t *value);
-int sceSystemServiceGetAppIdOfMiniApp();
-int sceSystemServiceGetAppIdOfBigApp();
-}
-
 bool IS_ERROR(uint32_t a1)
 {
     return a1 & 0x80000000;
@@ -49,6 +39,15 @@ bool IS_ERROR(uint32_t a1)
 
 bool if_exists(const char* path)
 {
+    /*
+    int dfd = open(path, O_RDONLY, 0); // try to open dir
+    if (dfd < 0) {
+      // log_info("path %s, errno %s", path, strerror(errno));
+        return false;
+    }
+    else
+      close(dfd);
+    */
     struct stat   buffer;   
     return (stat(path, &buffer) == 0);
 }
@@ -91,7 +90,6 @@ void log_for_api(const char* format, ...)
     }
 }
 
-
 bool copyFile(std::string source, std::string dest)
 {
     std::string buf;
@@ -132,37 +130,37 @@ bool copyFile(std::string source, std::string dest)
     }
 }
 
-bool MD5_hash_compare(const char* filename, const char* hash)
+bool MD5_hash_compare(const char* file1, const char* hash)
 {
-   std::stringstream ss;
-   std::streampos fsize = 0;
-   std::ifstream file(filename, std::ios::binary);
-   if (!file.is_open() || file.bad()) {
-	log_for_api("Could not open file %s", filename);
-	return false;
+    unsigned char c[MD5_HASH_LENGTH];
+    FILE* f1 = fopen(file1, "rb");
+    MD5_CTX mdContext;
+
+    int bytes = 0;
+    unsigned char data[1024];
+
+    MD5_Init(&mdContext);
+    while ((bytes = fread(data, 1, 1024, f1)) != 0)
+        MD5_Update(&mdContext, data, bytes);
+    MD5_Final(c, &mdContext);
+
+    char md5_string[33] = {0};
+
+    for(int i = 0; i < 16; ++i) {
+        snprintf(&md5_string[i*2], 32, "%02x", (unsigned int)c[i]);
     }
-    MD5_CTX ctx;
-    MD5_Init(&ctx);
-    char buf[32768];
+    log_for_api( "[MD5] FILE HASH: %s", md5_string);
+    md5_string[32] = 0;
 
-    while (file.read(buf, sizeof(buf)))
-	   MD5_Update(&ctx, buf, sizeof(buf));
+    if (strcmp(md5_string, hash) != 0) {
+        fclose(f1);
+        return DIFFERENT_HASH;
+    }
 
-    fsize = file.tellg();
-    file.seekg( 0, std::ios::end );
-    fsize = file.tellg() - fsize;
-	
-    MD5_Update(&ctx, buf, fsize);
-    unsigned char result[16];
-    MD5_Final(result, &ctx);
-    file.close();
+    log_for_api( "[MD5] Input HASH: %s", hash);
+    fclose(f1);
 
-     for (int i = 0; i < 16; i++)
-         ss << std::hex << std::setw(2) << std::setfill('0') << (int)result[i];
-	
-     log_for_api("[MD5] File hash: %s vs hash: %s", ss.str().c_str(), hash);
-
-     return (ss.str() != hash);
+    return SAME_HASH;
 }
 
 bool is_apputil_init()
@@ -299,139 +297,79 @@ void hexDump (
     printf ("  %s\n", buff);
 }
 
-void* find_sceLncUtilLaunchApp(void* addr){
+extern "C" uint32_t sceLncUtilLaunchApp(const char* tid, const char* argv[], LncAppParam* param);
 
-    for(int i = 0x40; i < 0x50; i++){
-        void *addrp = (void*)((uintptr_t)addr + i);
-        const unsigned char * pc = (const unsigned char *)addrp;
-  
-        hexDump("Searching for sceLncUtilLaunchApp",(void*)((uintptr_t)addrp + 2), 0x3, 0x3);
-        if (pc[0] == 0xE8 && /*Skip first byte*/ pc[2] == 0x10 && pc[3] == 0x00 && pc[4] == 0x00){
-            return addrp;
-        }
-        else
-            log_for_api("opcodes(0x%x) %x %x %x", i, pc[0], pc[2], pc[3]);
-    }
+bool Launch_Store_URI(const char * query) {
+  int ret = -1;
+  uint32_t userId = 0;
+  std::string uri = query;
+  if (!if_exists("/user/app/NPXS39041/app.pkg")) {
+    log_for_api("[STORE_URI] Store is NOT INSTALLED!!! ");
 
-    return NULL;
-}
-uint32_t (*sceLncUtilLaunchApp)(const char* tid, const char* argv[], LncAppParam* param);
-bool Launch_Store_URI(const char* query)
-{
-    int ret = -1;
-    uint32_t userId = 0;
-    std::string uri = query;
-    if(!if_exists("/user/app/NPXS39041/app.pkg")){
-        log_for_api("[STORE_URI] Store is NOT INSTALLED!!! ");
+    if (Confirmation_Msg("The Store isn't installed, would you like to install it now?") == YES &&
+      (ret = dl_from_url("https://pkg-zone.com/Store-R2.pkg", "/user/app/store_download.pkg")) == 0) {
 
-        if(Confirmation_Msg("The Store isn't installed, would you like to install it now?") == YES &&
-         (ret = dl_from_url("https://pkg-zone.com/Store-R2.pkg", "/user/app/store_download.pkg")) == 0){
-
-            log_for_api("[STORE_URI] Store is downloaded, installing.... ");
-            if((ret = pkginstall("/user/app/store_download.pkg", "Homebrew Store")) == 0){
-                log_for_api("[STORE_URI] Store is installed, going on.... ");
-            }
-            else{
-                log_for_api("[STORE_URI] Store is NOT installed, err: %i, Returning....", ret );
-                return false;
-            }
-        }
-        else{
-            log_for_api("[STORE_URI] Store is NOT downloaded, err: %i, Returning....", ret);
-            return false;
-        }
-    }
-
-    int libcmi = sceKernelLoadStartModule("/system/common/lib/libSceSystemService.sprx", 0, NULL, 0, 0, 0);
-    if (libcmi > 0)
-    {
-        sceUserServiceGetForegroundUser(&userId);
-        log_for_api("[STORE_URI] Foreground UserId: %d", userId);
-
-        LncAppParam param;
-        param.sz = sizeof(LncAppParam);
-        param.user_id = userId;
-        param.app_opt = 0;
-        param.crash_report = 0;
-        param.check_flag = SkipSystemUpdateCheck;
-
-         const char* argv[] =
-         {
-           uri.c_str(),
-           NULL,
-        };
-
-        int StoreID = sceSystemServiceGetAppIdOfMiniApp();
-        if ((StoreID & ~0xFFFFFF) == 0x60000000 && if_exists("/mnt/sandbox/pfsmnt/NPXS39041-app0/")) {
-            log_for_api("[STORE_URI] Store already opened!! Closing,...");
-            sceSystemServiceKillApp(StoreID, -1, 0, 0);
-            log_for_api("[STORE_URI] Store Closed");
-        }
-        
-        log_for_api("[STORE_URI] Opening Store...");
-        // Launch Store with ARG Search
-        sceKernelDlsym(libcmi, "sceSystemServiceLaunchApp", (void**)&sceLncUtilLaunchApp);
-        if(sceLncUtilLaunchApp == NULL){
-            log_for_api("[STORE_URI] sceLncUtilLaunchApp is NULL");
-            return false;
-        }
-       
-        if((sceLncUtilLaunchApp = (uint32_t (*)(const char*, const char**, LncAppParam*))
-        find_sceLncUtilLaunchApp((void*)sceLncUtilLaunchApp)) == NULL){
-            log_for_api("[STORE_URI] sceLncUtilLaunchApp NOT found");
-            return false;
-        }
-
-        log_for_api("[STORE_URI] sceLncUtilLaunchApp found at %p", sceLncUtilLaunchApp);
-
-        uint32_t sys_res = sceLncUtilLaunchApp(STORE_TID, argv, &param);
-        if (IS_ERROR(sys_res)){
-            log_for_api("[STORE_URI] sceSystemServiceLaunchApp failed: 0x%08X", sys_res);
-            return false;
-        }
-        else
-            log_for_api("[STORE_URI] sceSystemServiceLaunchApp succeeded");
-
-    }
-
-    return true;
-
-}
-static bool app_inst_util_is_exists(const char* title_id, bool* exists) {
-    int flag;
-
-    if (!title_id) return false;
-
-    if (!sceAppInst_done) {
-        log_for_api("Starting app_inst_util_init..");
-        if (!app_inst_util_init()) {
-            log_for_api("app_inst_util_init has failed...");
-            return false;
-        }
-    }
-
-    int ret = sceAppInstUtilAppExists(title_id, &flag);
-    if (ret) {
-        log_for_api("sceAppInstUtilAppExists failed: 0x%08X\n", ret);
+      log_for_api("[STORE_URI] Store is downloaded, installing.... ");
+      if ((ret = pkginstall("/user/app/store_download.pkg", "Homebrew Store")) == 0) {
+        log_for_api("[STORE_URI] Store is installed, going on.... ");
+      } else {
+        log_for_api("[STORE_URI] Store is NOT installed, err: %i, Returning....", ret);
         return false;
+      }
+    } else {
+      log_for_api("[STORE_URI] Store is NOT downloaded, err: %i, Returning....", ret);
+      return false;
+    }
+  }
+
+  int libcmi = sceKernelLoadStartModule("/system/common/lib/libSceSystemService.sprx", 0, NULL, 0, 0, 0);
+  if (libcmi > 0) {
+    sceUserServiceGetForegroundUser( & userId);
+    log_for_api("[STORE_URI] Foreground UserId: %d", userId);
+
+    LncAppParam param;
+    param.sz = sizeof(LncAppParam);
+    param.user_id = userId;
+    param.app_opt = 0;
+    param.crash_report = 0;
+    param.check_flag = SkipSystemUpdateCheck;
+
+    const char * argv[] = {
+      uri.c_str(),
+      NULL,
+    };
+
+    int StoreID = sceSystemServiceGetAppIdOfMiniApp();
+    if ((StoreID & ~0xFFFFFF) == 0x60000000 && if_exists("/mnt/sandbox/pfsmnt/NPXS39041-app0/")) {
+      log_for_api("[STORE_URI] Store already opened!! Closing,...");
+      sceSystemServiceKillApp(StoreID, -1, 0, 0);
+      log_for_api("[STORE_URI] Store Closed");
     }
 
-    if (exists) *exists = flag;
+    log_for_api("[STORE_URI] Opening Store...");
+    log_for_api("[STORE_URI] sceLncUtilLaunchApp = %p", sceLncUtilLaunchApp);
 
-    return true;
+    uint32_t sys_res = sceLncUtilLaunchApp(STORE_TID, argv, & param);
+    if (IS_ERROR(sys_res)) {
+      log_for_api("[STORE_URI] sceSystemServiceLaunchApp failed: 0x%08X", sys_res);
+      return false;
+    } else
+      log_for_api("[STORE_URI] sceSystemServiceLaunchApp succeeded");
+
+  }
+
+  return true;
+
 }
 
 update_ret check_update_from_url(const char* tid)
 {
     //ITEM00001
-    bool app_exists = false;
     std::string http_req = fmt::format("https://api.pkg-zone.com/hashByTitleID/{}", tid);
     std::string dst_path = fmt::format("/user/app/{}/app.pkg", tid);
     log_for_api("[STORE_URI] Checking for updates from: %s", http_req.c_str());
-    app_inst_util_is_exists(tid, &app_exists);
-    log_for_api("[STORE_URI] Does %s exists? %s", tid, app_exists ? "Yes" : "No");
     std::string result = check_from_url(http_req);
-    if (!result.empty() && app_exists) {
+    if (!result.empty()) {
         bool ret = MD5_hash_compare(dst_path.c_str(), result.c_str());
         log_for_api("Update Status: %s", ret ? "UPDATE_REQUIRED": "NO_UPDATE");
         return (ret) ? UPDATE_FOUND : NO_UPDATE;  
@@ -483,12 +421,8 @@ void ProgSetMessagewText(int prog, const char* fmt, ...)
 
 int progstart(char* format, ...)
 {
-
-    
     int ret = 0;
-
     char buff[1024];
-
     memset(buff, 0, 1024);
 
     va_list args;

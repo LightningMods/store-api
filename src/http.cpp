@@ -47,80 +47,83 @@ static int update_progress(void *bar, int64_t dltotal, int64_t dlnow, int64_t ul
     return 0;
 }
 
-long curlDownloadFile(const char* url, const char* file)
-{
-	CURL *curl = NULL;
+long curlDownloadFile(const char * url,
+  const char * file) {
+  CURL * curl = NULL;
 
-	FILE* imageFD = fopen(file, "wb");
-	if(!imageFD){
-        log_for_api("Failed to open file: %s | %s", file, strerror(errno));
-		return -999;
-	}
+  FILE * imageFD = fopen(file, "wb");
+  if (!imageFD) {
+    log_for_api("Failed to open file: %s | %s", file, strerror(errno));
+    return -999;
+  }
 
-    progstart((char*)"starting download");
+  progstart((char * )
+    "starting download");
 
-	CURLcode res  = (CURLcode)-1;
-    log_for_api("Downloading: %s | %p | %p", url, curl_easy_init, curl_easy_strerror);
-	curl = curl_easy_init();
-    log_for_api("curl_easy_init: %p", curl);
-	if(curl) {
-		curl_easy_setopt(curl, CURLOPT_URL, url);
-		// Set user agent string
-        std::string ua = fmt::format("Store API - FW: {0:x}", ps4_fw_version());
-        log_for_api("[HTTP] User Agent set to %s", ua.c_str());
-		curl_easy_setopt(curl, CURLOPT_USERAGENT, ua.c_str());
-		// not sure how to use this when enabled
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
-		// not sure how to use this when enabled
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-		// Set SSL VERSION to TLS 1.2
-		curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
-		// Set timeout for the connection to build
-		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
-		// Follow redirects (?)
-		curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-		// The function that will be used to write the data 
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fwrite);
-		// The data filedescriptor which will be written to
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, imageFD);
-        // maximum number of redirects allowed
-        curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 20);
-        // request using SSL for the FTP transfer if available
-        curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
+  CURLcode res = (CURLcode) - 1;
+  log_for_api("Downloading: %s | %p | %p", url, curl_easy_init, curl_easy_strerror);
+  curl = curl_easy_init();
+  log_for_api("curl_easy_init: %p", curl);
+  if (curl) {
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    // Set user agent string
+    std::string ua = fmt::format("Store API - FW: {0:x}", ps4_fw_version());
+    log_for_api("[HTTP] User Agent set to %s", ua.c_str());
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, ua.c_str());
+    // not sure how to use this when enabled
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
+    // not sure how to use this when enabled
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+    // Set SSL VERSION to TLS 1.2
+    curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
+    // Set timeout for the connection to build
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
+    // Follow redirects (?)
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+    // The function that will be used to write the data 
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fwrite);
+    // The data filedescriptor which will be written to
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, imageFD);
+    // maximum number of redirects allowed
+    curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 20);
+    // request using SSL for the FTP transfer if available
+    curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
 
-        /* pass the struct pointer into the xferinfo function */
-        curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, update_progress);
-        curl_easy_setopt(curl, CURLOPT_XFERINFODATA, NULL);
-        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+    /* pass the struct pointer into the xferinfo function */
+    curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, update_progress);
+    curl_easy_setopt(curl, CURLOPT_XFERINFODATA, NULL);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
 
-		// Perform the request
-		res = curl_easy_perform(curl);
-		if(res != CURLE_OK){
-			log_for_api("curl_easy_perform() failed: %s", curl_easy_strerror(res));
-		}else{
-    		long httpresponsecode = 0;
-    		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpresponsecode);
-            // close filedescriptor
-	        fclose(imageFD), imageFD = NULL;
-            // cleanup
-	        curl_easy_cleanup(curl);
-            log_for_api("httpresponsecode: %lu", httpresponsecode);
-            sceMsgDialogTerminate();
-			return httpresponsecode;
-		}
+    // Perform the request
+    res = curl_easy_perform(curl);
+    if (res != CURLE_OK) {
+      log_for_api("curl_easy_perform() failed: %s", curl_easy_strerror(res));
+    } 
+    else {
+      long httpresponsecode = 0;
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, & httpresponsecode);
+      // close filedescriptor
+      fclose(imageFD), imageFD = NULL;
+      // cleanup
+      curl_easy_cleanup(curl);
+      log_for_api("httpresponsecode: %lu", httpresponsecode);
+      sceMsgDialogTerminate();
+      return httpresponsecode;
+    }
 
-	}else{
-		log_for_api("curl_easy_init() failed: %s", curl_easy_strerror(res));
-	}
+  }
+  else {
+    log_for_api("curl_easy_init() failed: %s", curl_easy_strerror(res));
+  }
 
-	// close filedescriptor
-	fclose(imageFD);
-	// cleanup
-	curl_easy_cleanup(curl);
-    unlink(file);
-    sceMsgDialogTerminate();
+  // close filedescriptor
+  fclose(imageFD);
+  // cleanup
+  curl_easy_cleanup(curl);
+  unlink(file);
+  sceMsgDialogTerminate();
 
-    return res;
+  return res;
 }
 
 // the _v2 version is used in download panel

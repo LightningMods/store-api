@@ -2,7 +2,7 @@
 TARGET := store_api.prx
 
 # Libraries linked into the ELF.
-LIBS        :=  -lc++ -ljbc -lc -lz -lkernel  -lcurl  -lpolarssl  -lSceUserService -lSceSysmodule \
+LIBS        :=  -lc++ -ljbc -lc -lkernel  -lcurl  -lpolarssl  -lSceUserService -lSceLncUtil -lSceSysmodule \
                 -lSceNet -lSceSystemService -lSceCommonDialog -lSceMsgDialog -lSceImeDialog -lSceIme -lSceBgft -lSceAppInstUtil -lSceLibcInternal
 
 
@@ -65,13 +65,7 @@ $(INTDIR)/%.o: $(PROJDIR)/%.cpp
 .PHONY: clean
 .DEFAULT_GOAL := all
 
-all: $(TARGET) $(TARGETSTATIC) install
+all: $(TARGET) $(TARGETSTATIC)
 
 clean:
 	rm -f $(TARGET)  $(INTDIR)/$(PROJDIR).elf $(INTDIR)/$(PROJDIR)/oelf $(OBJS)
-
-install: $(TARGET) $(TARGETSTATIC)
-	@echo Installing...
-	@cp include/store_api.h $(OO_PS4_TOOLCHAIN)/include/store_api.h
-	@cp -f $(TARGETSTATIC) $(OO_PS4_TOOLCHAIN)/lib/$(TARGETSTATIC) 2>/dev/null
-	@echo Installed!

@@ -2,7 +2,6 @@
 
 
 
-#include <atomic>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -84,6 +83,12 @@ bool copy_dir(const char* sourcedir, const char* destdir);
 extern bool is_connected_app;
 bool MD5_hash_compare(const char* file1, const char* hash);
 bool copyFile(std::string source, std::string dest, bool show_progress);
+int sceUserServiceGetForegroundUser(uint32_t *userid);
+int32_t sceSystemServiceHideSplashScreen();
+int32_t sceSystemServiceParamGetInt(int32_t paramId, int32_t *value);
+
+int sceSystemServiceGetAppIdOfMiniApp();
+int sceSystemServiceGetAppIdOfBigApp();
 int sceLncUtilGetAppId(const char* TID);
 int sceLncUtilGetAppTitleId(int appid, char* tid_out);
 int sceAppInstUtilAppGetInsertedDiscTitleId(const char* tid);
@@ -91,7 +96,10 @@ int scePadGetHandle(int uid, int idc, int idc_1);
 int sceAppInstUtilTerminate();
 bool IS_ERROR(uint32_t ret);
 bool MD5_file_compare(const char* file1, const char* file2);
+int sceKernelOpenEventFlag(void* event, const char* name);
+int sceKernelCloseEventFlag(void* event);
 update_ret check_update_from_url(const char* url);
+int sceSystemServiceKillApp(uint32_t appid, int opt,int method, int reason);
 bool if_exists(const char* path);
 int sceAppInstUtilAppExists(const char* tid, int* flag);
 uintptr_t jbc_get_prison0(void);
