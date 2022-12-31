@@ -9,7 +9,7 @@ enum update_ret{
 extern "C" {
 #endif
 bool sceStoreApiLaunchStore(const char* query);
-update_ret sceStoreApiCheckUpdate(const char* tid);
+enum update_ret sceStoreApiCheckUpdate(const char* tid);
 #if defined(__cplusplus)
 }  
 #endif
