@@ -18,7 +18,7 @@ Homebrew Store API library that any PS4 Homebrew app can implement (works with s
 **FIRST** Download the Linux [create_fself with multi-lib support](https://github.com/LightningMods/OpenOrbis-PS4-Toolchain/releases/download/v0.50001/create-fself)
 OR compile it yourself using [This multi-lib pull request](https://github.com/OpenOrbis/create-fself/pull/5)
 
-**Alternatively** you can Download [the HB Store's OOSDK](https://github.com/LightningMods/OpenOrbis-PS4-Toolchain/releases/download/v0.50001/)
+**Alternatively** you can Download [the HB Store's OOSDK](https://github.com/LightningMods/OpenOrbis-PS4-Toolchain/releases/download/v0.50001/OOSDK.tar.gz)
 
 Run `make` to create a static library and a prx
 Run `make install` to install the static library and store_api.h header
