@@ -9,6 +9,9 @@ LIBS        :=  -lc++ -ljbc -lc -lkernel  -lcurl  -lpolarssl  -lSceUserService -
 # Additional compile flags.
 EXTRAFLAGS  := -Wall -Wno-int-to-pointer-cast -Werror -Wno-for-loop-analysis -fcolor-diagnostics -Iinclude -Wall -D__ORBIS__ -D__PS4__
 
+# Additional compile flags.
+EXTRAFLAGS  := -Wall -Wno-int-to-pointer-cast -Werror -Wno-for-loop-analysis -fcolor-diagnostics -Iinclude -Wall -D__ORBIS__ -D__PS4__
+
 # You likely won't need to touch anything below this point.
 
 # Root vars
@@ -65,7 +68,13 @@ $(INTDIR)/%.o: $(PROJDIR)/%.cpp
 .PHONY: clean
 .DEFAULT_GOAL := all
 
-all: $(TARGET) $(TARGETSTATIC)
+all: $(TARGET) $(TARGETSTATIC) install
 
 clean:
 	rm -f $(TARGET)  $(INTDIR)/$(PROJDIR).elf $(INTDIR)/$(PROJDIR)/oelf $(OBJS)
+
+install: $(TARGET) $(TARGETSTATIC)
+	@echo Installing...
+	@cp include/store_api.h $(OO_PS4_TOOLCHAIN)/include/store_api.h
+	@cp -f $(TARGETSTATIC) $(OO_PS4_TOOLCHAIN)/lib/$(TARGETSTATIC) 2>/dev/null
+	@echo Installed!
