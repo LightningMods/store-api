@@ -24,7 +24,8 @@ Run `make` to create a static library and a prx
 Run `make install` to install the static library and store_api.h header
 
 ### Developer Instructions
-the following PS4 system libs are used by this library `-lSceBgft -lSceAppInstUtil`
+the following PS4 system libs are used by this library `-lSceBgft -lSceAppInstUtil -lSceLncUtil -ljbc -lcurl  -lpolarssl  -lSceUserService -lSceLncUtil -lSceSysmodule  -lSceNet -lSceSystemService -lSceCommonDialog  -lSceLibcInternal`
+
 `make install` will install the store_api.h header to the SDK so you can include it in your 
 project by doing `<store_api.h>` and include the static lib `-lstore_api` you can either use the static (.a) or dynamic (.prx) libs
 
