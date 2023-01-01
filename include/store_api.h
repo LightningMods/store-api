@@ -1,15 +1,16 @@
 #include <stdint.h>
 
-enum update_ret{
+typedef enum{
     UPDATE_FOUND,
     UPDATE_ERROR,
     NO_UPDATE,
-};
+} update_ret;
+
 #ifdef __cplusplus 
 extern "C" {
 #endif
 bool sceStoreApiLaunchStore(const char* query);
-enum update_ret sceStoreApiCheckUpdate(const char* tid);
+update_ret sceStoreApiCheckUpdate(const char* tid);
 #if defined(__cplusplus)
 }  
 #endif
