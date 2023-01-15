@@ -77,6 +77,12 @@ LncAppParam;
 #define SCE_SYSMODULE_INTERNAL_COMMON_DIALOG 0x80000018
 #define SCE_SYSMODULE_INTERNAL_SYSUTIL 0x80000018
 
+#define SYSCALL(nr, fn) __attribute__((naked)) fn\
+{\
+    asm volatile("mov $" #nr ", %rax\nmov %rcx, %r10\nsyscall\nret");\
+}
+
+
 // sysctl
 uint32_t ps4_fw_version(void);
 bool copy_dir(const char* sourcedir, const char* destdir);
@@ -113,6 +119,8 @@ bool is_jailbroken();
 }
 #endif
 
+
+#define	MNT_UPDATE	0x0000000000010000ULL /* not real mount, just update */
 std::string check_from_url(std::string &url_);
 int dl_from_url(const char *url_, const char *dst_);
 bool Launch_Store_URI();
@@ -122,5 +130,6 @@ bool is_mira_available(void);
 void mira_get_perms(void);
 update_ret check_update_from_url(const char* tid);
 void ProgSetMessagewText(int prog, const char* fmt, ...);
+int mountfs(const char* device, const char* mountpoint, const char* fstype, const char* mode, uint64_t flags);
 int progstart(char* format, ...);
 void loadmsg(std::string in);
