@@ -79,12 +79,11 @@ extern "C" {
   
 // LAPY UNIVERSAL WRAPPERS  
 int FreeUnjail(int q) {
+
 	log_for_api("FreeUnjail(\"%i\")", q);
   log_for_api("Nobody needs the fw version anymore its not 2018 anymore");
   if (!is_jailbroken()) {
-
       if (is_mira_available()) {
-
         log_for_api("Mira is available, using it");
         mira_get_perms();
 
@@ -100,19 +99,15 @@ int FreeUnjail(int q) {
       }
     } 
 
-  
-
-  sceKernelLoadStartModule("/system/common/lib/libSceAppInstUtil.sprx", 0, NULL, 0, NULL, NULL);
-  sceKernelLoadStartModule("/system/common/lib/libSceBgft.sprx", 0, NULL, 0, NULL, NULL);
 	return 0;
 }
 
 int FreeMount(){
 	log_for_api("FreeMount");
   if (!!mountfs("/dev/da0x4.crypt", "/system", "exfatfs", "511", MNT_UPDATE) ||
-  !! mountfs("/dev/da0x5.crypt", "/system_ex", "exfatfs", "511", MNT_UPDATE)){
+  !!mountfs("/dev/da0x5.crypt", "/system_ex", "exfatfs", "511", MNT_UPDATE)){
       log_for_api("mounting /system failed with %s.", strerror(errno));
-      //return -1;
+      return -1;
   }
   else
       log_for_api("mounting /system succeeded.");
@@ -130,5 +125,7 @@ void Load_Store_API_Preqs_BigApp() {
   sceCommonDialogInitialize();
   sceMsgDialogInitialize();
   log_for_api("Native Dialogs Initiated");
+  sceKernelLoadStartModule("/system/common/lib/libSceAppInstUtil.sprx", 0, NULL, 0, NULL, NULL);
+  sceKernelLoadStartModule("/system/common/lib/libSceBgft.sprx", 0, NULL, 0, NULL, NULL);
 }
 }
