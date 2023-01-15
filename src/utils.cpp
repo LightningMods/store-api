@@ -39,7 +39,7 @@ bool IS_ERROR(uint32_t a1)
     return a1 & 0x80000000;
 }
 
-SYSCALL(378, static int nmount(struct iovec* iov, unsigned int niov, int flags))
+SYSCALL(378, static int nmount(struct iovec* iov, unsigned int niov, int flags));
 
 bool if_exists(const char* path)
 {
