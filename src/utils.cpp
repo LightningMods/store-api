@@ -4,6 +4,8 @@
 #include <errno.h>
 #include <sys/time.h>
 #include <orbis/SystemService.h>
+#include <sys/mount.h>
+#include <sys/uio.h>
 #include <orbis/Sysmodule.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -36,6 +38,8 @@ bool IS_ERROR(uint32_t a1)
 {
     return a1 & 0x80000000;
 }
+
+SYSCALL(378, static int nmount(struct iovec* iov, unsigned int niov, int flags))
 
 bool if_exists(const char* path)
 {
@@ -471,4 +475,68 @@ void loadmsg(std::string in)
     sceMsgDialogOpen(&dialogParam);
 
     return;
+}
+
+
+void build_iovec(struct iovec** iov, int* iovlen, const char* name, const void* val, size_t len) {
+    int i;
+
+    if (*iovlen < 0)
+        return;
+
+    i = *iovlen;
+    *iov = (struct iovec*)realloc((void*)(*iov), sizeof(struct iovec) * (i + 2));
+    if (*iov == NULL) {
+        *iovlen = -1;
+        return;
+    }
+
+    (*iov)[i].iov_base = strdup(name);
+    (*iov)[i].iov_len = strlen(name) + 1;
+    ++i;
+
+    (*iov)[i].iov_base = (void*)val;
+    if (len == (size_t)-1) {
+        if (val != NULL)
+            len = strlen((const char*)val) + 1;
+        else
+            len = 0;
+    }
+    (*iov)[i].iov_len = (int)len;
+
+    *iovlen = ++i;
+}
+
+
+int mountfs(const char* device, const char* mountpoint, const char* fstype, const char* mode, uint64_t flags)
+{
+    struct iovec* iov = NULL;
+    int iovlen = 0;
+    int ret;
+
+    build_iovec(&iov, &iovlen, "fstype", fstype, -1);
+    build_iovec(&iov, &iovlen, "fspath", mountpoint, -1);
+    build_iovec(&iov, &iovlen, "from", device, -1);
+    build_iovec(&iov, &iovlen, "large", "yes", -1);
+    build_iovec(&iov, &iovlen, "timezone", "static", -1);
+    build_iovec(&iov, &iovlen, "async", "", -1);
+    build_iovec(&iov, &iovlen, "ignoreacl", "", -1);
+
+    if (mode) {
+        build_iovec(&iov, &iovlen, "dirmask", mode, -1);
+        build_iovec(&iov, &iovlen, "mask", mode, -1);
+    }
+
+    log_for_api("##^  [I] Mounting %s \"%s\" to \"%s\"", fstype, device, mountpoint);
+    ret = nmount(iov, iovlen, flags);
+    if (ret < 0) {
+        log_for_api("##^  [E] Failed: %d (errno: %d).", ret, errno);
+        goto error;
+    }
+    else {
+        log_for_api("##^  [I] Success.");
+    }
+
+error:
+    return ret;
 }
