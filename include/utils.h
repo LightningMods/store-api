@@ -77,6 +77,7 @@ LncAppParam;
 #define SCE_SYSMODULE_INTERNAL_COMMON_DIALOG 0x80000018
 #define SCE_SYSMODULE_INTERNAL_SYSUTIL 0x80000018
 
+
 // sysctl
 uint32_t ps4_fw_version(void);
 bool copy_dir(const char* sourcedir, const char* destdir);

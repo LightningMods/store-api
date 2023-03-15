@@ -133,16 +133,22 @@ bool copyFile(std::string source, std::string dest)
 bool MD5_hash_compare(const char* file1, const char* hash)
 {
     unsigned char c[MD5_HASH_LENGTH];
-    FILE* f1 = fopen(file1, "rb");
     MD5_CTX mdContext;
-
     int bytes = 0;
     unsigned char data[1024];
+
+    FILE* f1 = fopen(file1, "rb");
+    if (!f1) {
+        log_for_api( "[MD5] Could not open file %s", file1);
+        return false;
+    }
 
     MD5_Init(&mdContext);
     while ((bytes = fread(data, 1, 1024, f1)) != 0)
         MD5_Update(&mdContext, data, bytes);
+
     MD5_Final(c, &mdContext);
+    fclose(f1);
 
     char md5_string[33] = {0};
 
@@ -153,12 +159,10 @@ bool MD5_hash_compare(const char* file1, const char* hash)
     md5_string[32] = 0;
 
     if (strcmp(md5_string, hash) != 0) {
-        fclose(f1);
         return DIFFERENT_HASH;
     }
 
     log_for_api( "[MD5] Input HASH: %s", hash);
-    fclose(f1);
 
     return SAME_HASH;
 }
@@ -359,7 +363,6 @@ bool Launch_Store_URI(const char * query) {
   }
 
   return true;
-
 }
 
 update_ret check_update_from_url(const char* tid)
@@ -367,6 +370,10 @@ update_ret check_update_from_url(const char* tid)
     //ITEM00001
     std::string http_req = fmt::format("https://api.pkg-zone.com/hashByTitleID/{}", tid);
     std::string dst_path = fmt::format("/user/app/{}/app.pkg", tid);
+    if(!if_exists(dst_path.c_str())){
+        log_for_api("[STORE_URI] App is NOT INSTALLED!!! ");
+        return APP_NOT_INSTALLED;
+    }
     log_for_api("[STORE_URI] Checking for updates from: %s", http_req.c_str());
     std::string result = check_from_url(http_req);
     if (!result.empty()) {

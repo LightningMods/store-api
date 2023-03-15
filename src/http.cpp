@@ -8,6 +8,7 @@
 #include "fmt/printf.h"
 #include "fmt/chrono.h"
 #include <unistd.h>
+#include "defines.h"
 
 #define ORBIS_TRUE 1
 
@@ -179,7 +180,7 @@ std::string check_from_url(std::string &url_)
     
     memset(JSON, 0, sizeof(JSON));
 
-    std::string ua = fmt::format("Store API - FW: {0:x}", ps4_fw_version());
+    std::string ua = fmt::format("Store API version {0:#X} - FW: {1:#X}", API_VERSION, ps4_fw_version());
     curl = curl_easy_init();
     if (curl)
     {

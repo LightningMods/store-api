@@ -3,9 +3,8 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include "utils.h"
+#include "defines.h"
 
-
-#define API_VERSION 0x1002
 
 extern "C" {
   /* SCE PREFIX WRAPPER TO MOCK THEM */

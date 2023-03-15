@@ -4,6 +4,7 @@ typedef enum{
     UPDATE_FOUND,
     UPDATE_ERROR,
     NO_UPDATE,
+    APP_NOT_INSTALLED,  //
 } update_ret;
 
 #ifdef __cplusplus 
