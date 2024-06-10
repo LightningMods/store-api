@@ -479,30 +479,3 @@ void loadmsg(std::string in)
 
     return;
 }
-bool fetch_json(const char* url, std::string & readBuffer, const char* ua) {
-  CURL * curl;
-  CURLcode res;
-  char JSON[BUFFER_SIZE];
-  struct write_result write_result = {
-    .data = &JSON[0],
-    .pos = 0
-  };
-
-  curl = curl_easy_init();
-  if (curl) {
-    curl_easy_setopt(curl, CURLOPT_URL, ur);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &write_result);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, ua);
-    res = curl_easy_perform(curl);
-    curl_easy_cleanup(curl);
-    readBuffer = std::string(JSON);
-    return res == CURLE_OK;
-  }
-  return false;
-}
-
