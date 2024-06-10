@@ -5,7 +5,7 @@
 #include "utils.h"
 #include "defines.h"
 
-bool fetch_json(const char* url, char *json, const char* ua)
+//bool fetch_json(const char* url, char *json, const char* ua)
 extern "C" {
   /* SCE PREFIX WRAPPER TO MOCK THEM */
   // query can either be the app title id or app name
