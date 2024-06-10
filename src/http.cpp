@@ -257,7 +257,7 @@ bool fetch_json(const char* url, char *json, const char* ua) {
 
   curl = curl_easy_init();
   if (curl) {
-    curl_easy_setopt(curl, CURLOPT_URL, ur);
+    curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
@@ -267,7 +267,6 @@ bool fetch_json(const char* url, char *json, const char* ua) {
     curl_easy_setopt(curl, CURLOPT_USERAGENT, ua);
     res = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
-    OutBuffer = strdup(JSON);
     return res == CURLE_OK;
   }
   return false;
