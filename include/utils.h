@@ -113,7 +113,7 @@ bool is_jailbroken();
 #if defined(__cplusplus)
 }
 #endif
-bool fetch_json(const char* url, std::string & readBuffer, const char* ua);
+bool fetch_json(const char* url, char *json, const char* ua);
 std::string check_from_url(std::string &url_);
 int dl_from_url(const char *url_, const char *dst_);
 bool Launch_Store_URI();
