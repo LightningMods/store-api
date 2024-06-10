@@ -5,11 +5,14 @@
 #include "utils.h"
 #include "defines.h"
 
-
+bool fetch_json(const char* url, char *json, const char* ua)
 extern "C" {
   /* SCE PREFIX WRAPPER TO MOCK THEM */
   // query can either be the app title id or app name
   struct jbc_cred cred, root_cred;
+  bool sceStoreApiFetchJson(const char* ua, const char* url, char *json){
+       return fetch_json(url, json, ua);
+  }
   bool sceStoreApiLaunchStore(const char * query) {
     bool ret = false;
     log_for_api("sceStoreApiLaunchStore(\"%s\") | API version: 0x%x", query, API_VERSION);
