@@ -15,7 +15,7 @@ extern "C" {
   struct jbc_cred cred, root_cred;
   bool sceStoreApiLaunchStore(const char * query) {
     bool ret = false;
-    log_for_api("sceStoreApiLaunchStore(\"%s\") | API version: 0x%x", query, API_VERSION);
+    log_for_api(" sceStoreApiLaunchStore(\"%s\") | API version: 0x%x", query, API_VERSION);
 
     if (!is_jailbroken()) {
 
