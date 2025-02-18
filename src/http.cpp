@@ -180,7 +180,7 @@ std::string check_from_url(std::string &url_)
     
     memset(JSON, 0, sizeof(JSON));
 
-    std::string ua = fmt::format("Store API version {0:#X} - FW: {1:#X}", API_VERSION, ps4_fw_version());
+    std::string ua = fmt::format("StoreHAX PS4 API Version {0:#X} - FW:{1:#X}", API_VERSION, ps4_fw_version());
     curl = curl_easy_init();
     if (curl)
     {

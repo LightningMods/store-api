@@ -1,8 +1,5 @@
 #pragma once
 
-#define API_VERSION 0x1003
-
-
 #define ITEMZ_CUSTOM_SFO "/user/app/ITEM00001/sfos"
 
 #define SCE_SYSMODULE_INTERNAL_SYS_CORE 0x80000004

@@ -7,6 +7,8 @@ typedef enum{
     APP_NOT_INSTALLED,  //
 } update_ret;
 
+#define API_VERSION 0x1004
+
 #ifdef __cplusplus 
 extern "C" {
 #endif

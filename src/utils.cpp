@@ -307,7 +307,7 @@ bool Launch_Store_URI(const char * query) {
   int ret = -1;
   uint32_t userId = 0;
   std::string uri = query;
-  if (!if_exists("/user/app/NPXS39041/app.pkg")) {
+  if (!if_exists("/user/app/NPXS39041/app.pkg") && !if_exists("/mnt/ext0/user/app/NPXS39041/app.pkg")) {
     log_for_api("[STORE_URI] Store is NOT INSTALLED!!! ");
 
     if (Confirmation_Msg("The Store isn't installed, would you like to install it now?") == YES &&
@@ -370,7 +370,8 @@ update_ret check_update_from_url(const char* tid)
     //ITEM00001
     std::string http_req = fmt::format("https://api.pkg-zone.com/hashByTitleID/{}", tid);
     std::string dst_path = fmt::format("/user/app/{}/app.pkg", tid);
-    if(!if_exists(dst_path.c_str())){
+    std::string ext_path = fmt::format("/mnt/ext0/user/app/{}/app.pkg", tid);
+    if(!if_exists(dst_path.c_str()) && !if_exists(ext_path.c_str())){
         log_for_api("[STORE_URI] App is NOT INSTALLED!!! ");
         return APP_NOT_INSTALLED;
     }
