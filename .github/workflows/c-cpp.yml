@@ -71,7 +71,7 @@ jobs:
         tar cf store_api.tar *.a *.prx
 
     - name: Push tarball
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@main
       with:
         name: store_api.tar
         path: store_api.tar
